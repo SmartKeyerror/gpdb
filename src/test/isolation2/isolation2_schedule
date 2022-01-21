@@ -288,3 +288,5 @@ test: check_gxid
 # test if GUC is synchronized from the QD to QEs.
 test: sync_guc
 
+# test distributed log is truncate during vaccum or startup
+test: distributedlog_truncate
