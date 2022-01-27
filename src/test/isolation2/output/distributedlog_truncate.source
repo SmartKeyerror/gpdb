@@ -31,8 +31,7 @@ CREATE
 -- end_ignore
 
 -- test 1: vacuum database will truncate distributed log files to the frozen xid
-
--- Autovacuum should take care of anti-XID wraparounds of 'template0'. Because
+ -- Autovacuum should take care of anti-XID wraparounds of 'template0'. Because
 -- of that, the age of template0 should not go much above
 -- autovacuum_freeze_max_age (we assume the default of 200 million here).
 show autovacuum_freeze_max_age;
@@ -47,6 +46,12 @@ show autovacuum_freeze_max_age;
 (1 row)
 
 SELECT gp_inject_fault('auto_vac_worker_before_do_autovacuum', 'suspend', '', 'template0', '', 1, -1, 0, dbid) from gp_segment_configuration where content = 0 and role = 'p';
+ gp_inject_fault 
+-----------------
+ Success:        
+(1 row)
+
+SELECT gp_inject_fault('vacuum_update_dat_frozen_xid', 'skip', '', 'template0', '', 1, -1, 0, dbid) from gp_segment_configuration where content = 0 and role = 'p';
  gp_inject_fault 
 -----------------
  Success:        
@@ -68,6 +73,21 @@ select test_consume_xids(10 * 1000000) from gp_dist_random('gp_id') where gp_seg
                    
 (1 row)
 
+checkpoint;
+CHECKPOINT
+
+-- more than (200 * 1000000 / 1024 / 1024 * 8) files, each xid takes 8 byes, max size of the file is 1MB.
+select num_distributed_log_files(0, true) > 200 * 1000000 / 1024 / 1024 * 8;
+ ?column? 
+----------
+ t        
+(1 row)
+select num_distributed_log_files(0, false) > 200 * 1000000 / 1024 / 1024 * 8;
+ ?column? 
+----------
+ t        
+(1 row)
+
 select gp_segment_id, age(datfrozenxid) < 200 * 1000000 from gp_dist_random('pg_database') where datname='template0';
  gp_segment_id | ?column? 
 ---------------+----------
@@ -83,12 +103,6 @@ SELECT gp_wait_until_triggered_fault('auto_vac_worker_before_do_autovacuum', 1, 
 (1 row)
 
 -- track that we've updated the row in pg_database for template0
-SELECT gp_inject_fault('vacuum_update_dat_frozen_xid', 'skip', '', 'template0', '', 1, -1, 0, dbid) from gp_segment_configuration where content = 0 and role = 'p';
- gp_inject_fault 
------------------
- Success:        
-(1 row)
-
 SELECT gp_inject_fault('auto_vac_worker_before_do_autovacuum', 'reset', dbid) from gp_segment_configuration where content = 0 and role = 'p';
  gp_inject_fault 
 -----------------
@@ -106,18 +120,6 @@ SELECT gp_inject_fault('vacuum_update_dat_frozen_xid', 'reset', dbid) from gp_se
  gp_inject_fault 
 -----------------
  Success:        
-(1 row)
-
--- more than (200 * 1000000 / 1024 / 1024 * 8) files, each xid takes 8 byes, max size of the file is 1MB.
-select num_distributed_log_files(0, true) > 200 * 1000000 / 1024 / 1024 * 8;
- ?column? 
-----------
- t        
-(1 row)
-select num_distributed_log_files(0, false) > 200 * 1000000 / 1024 / 1024 * 8;
- ?column? 
-----------
- t        
 (1 row)
 
 -- vacuum database will froze the xid and cut off the distributed log to the frozen xid.
