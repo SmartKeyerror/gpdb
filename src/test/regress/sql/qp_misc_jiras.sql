@@ -2130,7 +2130,6 @@ alter table qp_misc_jiras.tbl7285_axg add partition p20090103 start ('2009-01-03
 select count(*) from qp_misc_jiras.tbl7285_axg;
 drop table qp_misc_jiras.tbl7285_axg;
 show autovacuum;
-set autovacuum=on;
 
 create table qp_misc_jiras.tbl9706ao ( a int ) with (appendonly=true, compresslevel=5) distributed by (a);
 create table qp_misc_jiras.tbl9706aoc ( a int ) with (appendonly=true, compresslevel=5, orientation=column) distributed by (a);

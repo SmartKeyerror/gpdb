@@ -64,7 +64,6 @@ test: create_aggregate create_function_3 create_cast constraints triggers select
 # ----------
 test: disable_autovacuum
 test: vacuum_stats
-test: enable_autovacuum
 
 # ----------
 # sanity_check does a vacuum, affecting the sort order of SELECT *

@@ -28,7 +28,6 @@ test: copy_eol
 test: disable_autovacuum
 test: gp_toolkit
 test: python_processed64bit
-test: enable_autovacuum
 
 test: log_guc
 # enable query metrics cluster GUC
@@ -149,7 +148,6 @@ test: bfv_partition qp_misc_rio
 test: pgstat_qd_tabstat
 # dispatch should always run seperately from other cases.
 test: dispatch
-test: enable_autovacuum
 test: resource_group
 test: resource_group_cpuset
 test: resource_group_gucs
@@ -257,7 +255,6 @@ test: vacuum_full_heap_bitmapindex
 test: instr_in_shmem_verify
 # check autostats
 test: autostats
-test: enable_autovacuum
 
 test: ao_checksum_corruption AOCO_Compression AORO_Compression table_statistics
 test: session_reset
@@ -278,9 +275,6 @@ test: oid_wraparound
 # hence it should be run in isolation.
 test: fts_recovery_in_progress
 test: mirror_replay
-test: autovacuum
-test: autovacuum-segment
-test: autovacuum-template0-segment
 
 # gpexpand introduce the partial tables, check them if they can run correctly
 test: gangsize gang_reuse
