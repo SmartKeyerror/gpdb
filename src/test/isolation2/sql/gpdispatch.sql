@@ -75,4 +75,6 @@ select wait_until_all_segments_synchronized();
 -- verify no segment is down after recovery
 select count(*) from gp_segment_configuration where status = 'd';
 
+checkpoint;
+
 !\retcode vacuumdb -a; 
