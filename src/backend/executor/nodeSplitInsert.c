@@ -16,7 +16,7 @@ ExecSplitInsert(PlanState *pstate)
 	SplitInsertState *node = castNode(SplitInsertState, pstate);
 	PlanState *outerNode = outerPlanState(node);
 	SplitInsert *plannode = (SplitInsert *) node->ps.plan;
-	int          tl_len = list_length(plannode->plan->targetList);
+	int          tl_len = list_length(plannode->plan.targetlist);
 	int          num_relations = list_length(plannode->insertTargetRelid) + 1;
 
 	TupleTableSlot *slot = NULL;
@@ -50,7 +50,7 @@ ExecSplitInsert(PlanState *pstate)
 }
 
 SplitInsertState *
-ExecInitSplitInsert(SplitInsert *node, Estate *estate, int eflags)
+ExecInitSplitInsert(SplitInsert *node, EState *estate, int eflags)
 {
 	SplitInsertState *splitinsertstate;
 

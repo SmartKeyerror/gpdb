@@ -391,6 +391,7 @@ ExecInterpExpr(ExprState *state, ExprContext *econtext, bool *isnull)
 		&&CASE_EEOP_GROUPING_SET_ID,
 		&&CASE_EEOP_AGGEXPR_ID,
 		&&CASE_EEOP_ROWIDEXPR,
+		&&CASE_EEOP_TARGETRELEXPR,
 		&&CASE_EEOP_WINDOW_FUNC,
 		&&CASE_EEOP_SUBPLAN,
 		&&CASE_EEOP_ALTERNATIVE_SUBPLAN,
@@ -1524,6 +1525,14 @@ ExecInterpExpr(ExprState *state, ExprContext *econtext, bool *isnull)
 			int64		rowcounter = ++op->d.rowidexpr.rowcounter;
 
 			*op->resvalue = Int64GetDatum(rowcounter);
+			*op->resnull = false;
+
+			EEO_NEXT();
+		}
+
+		EEO_CASE(EEOP_TARGETRELEXPR)
+		{
+			*op->resvalue = 0;
 			*op->resnull = false;
 
 			EEO_NEXT();

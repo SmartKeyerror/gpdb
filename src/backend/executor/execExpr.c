@@ -891,6 +891,14 @@ ExecInitExprRec(Expr *node, ExprState *state,
 				break;
 			}
 
+		case T_InsertTargetExpr:
+			{
+				scratch.opcode = EEOP_TARGETRELEXPR;
+
+				ExprEvalPushStep(state, &scratch);
+				break;
+			}
+
 		case T_WindowFunc:
 			{
 				WindowFunc *wfunc = (WindowFunc *) node;

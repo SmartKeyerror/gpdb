@@ -222,6 +222,7 @@ typedef enum ExprEvalOp
 	EEOP_GROUPING_SET_ID,
 	EEOP_AGGEXPR_ID,
 	EEOP_ROWIDEXPR,
+	EEOP_TARGETRELEXPR,
 	EEOP_WINDOW_FUNC,
 	EEOP_SUBPLAN,
 	EEOP_ALTERNATIVE_SUBPLAN,
@@ -624,6 +625,12 @@ typedef struct ExprEvalStep
 		{
 			int64		rowcounter;
 		}			rowidexpr;
+
+		/* for EEOP_TARGETRELEXPR */
+		struct
+		{
+			
+		} inserttargetexpr;
 
 		/* for EEOP_WINDOW_FUNC */
 		struct
