@@ -39,6 +39,7 @@ OBJS += nodeMotion.o \
        nodeSequence.o \
        nodeAssertOp.o \
        nodeSplitUpdate.o \
+       nodeSplitInsert.o \
        nodeTupleSplit.o \
        nodePartitionSelector.o
 

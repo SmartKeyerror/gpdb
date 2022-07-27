@@ -2888,4 +2888,13 @@ typedef struct PartitionSelectorState
 	Bitmapset *part_prune_result;
 } PartitionSelectorState;
 
+
+typedef struct SplitInsertState
+{
+	PlanState		ps;
+	int32 			current_offset;
+	TupleTableSlot *resultTuple;
+} SplitInsertState;
+
+
 #endif							/* EXECNODES_H */

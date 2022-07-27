@@ -130,6 +130,7 @@
 #include "executor/nodeSequence.h"
 #include "executor/nodeShareInputScan.h"
 #include "executor/nodeSplitUpdate.h"
+#include "executor/nodeSplitInsert.h"
 #include "executor/nodeTableFunction.h"
 #include "pg_trace.h"
 #include "tcop/tcopprot.h"
@@ -473,6 +474,10 @@ ExecInitNode(Plan *node, EState *estate, int eflags)
 		case T_SplitUpdate:
 			result = (PlanState *) ExecInitSplitUpdate((SplitUpdate *) node,
 												  estate, eflags);
+			break;
+		case T_SplitInsert:
+			result = (PlanState *) ExecInitSplitInsert((SplitInsert *) node,
+													   estate, eflags);
 			break;
 		case T_AssertOp:
  			result = (PlanState *) ExecInitAssertOp((AssertOp *) node,
@@ -984,6 +989,9 @@ ExecEndNode(PlanState *node)
 			 */
 		case T_SplitUpdateState:
 			ExecEndSplitUpdate((SplitUpdateState *) node);
+			break;
+		case T_SplitInsertState:
+			ExecEndSplitInsert((SplitInsertState *) node);
 			break;
 		case T_AssertOpState:
 			ExecEndAssertOp((AssertOpState *) node);

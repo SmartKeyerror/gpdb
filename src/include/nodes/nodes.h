@@ -180,6 +180,7 @@ typedef enum NodeTag
 	T_MotionState,
 	T_ShareInputScanState,
 	T_SplitUpdateState,
+	T_SplitInsertState,
 	T_AssertOpState,
 	T_PartitionSelectorState,
 
