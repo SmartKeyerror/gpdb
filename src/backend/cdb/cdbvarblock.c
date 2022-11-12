@@ -76,7 +76,7 @@ VarBlockMakerInit(
 
 	/* UNDONE: Fix the constant to be the $MIN of approx. 16k (or 32k) */
 	/* UNDONE: and maxBufferLen... */
-	varBlockMaker->last2ByteOffsetPtr = &buffer[63 * 1024];
+	varBlockMaker->last2ByteOffsetPtr = &buffer[65536];
 	varBlockMaker->currentItemCount = 0;
 	varBlockMaker->maxItemCount = tempScratchSpaceLen / 2;
 
