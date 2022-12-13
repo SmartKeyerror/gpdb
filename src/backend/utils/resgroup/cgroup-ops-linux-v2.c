@@ -735,7 +735,7 @@ convertcpuusage_v2(int64 usage, int64 duration)
 	Assert(duration > 0LL);
 
 	/* There should always be at least one core on the system */
-	Assert(cgroupSystemInfobeta.ncores > 0);
+	Assert(cgroupSystemInfoBeta.ncores > 0);
 
 	/*
 	 * Usage is the cpu time (nano seconds) obtained by this group in the time
@@ -748,7 +748,7 @@ convertcpuusage_v2(int64 usage, int64 duration)
 	 *     usage / 1000 / duration / ncores * 100%
 	 *   = usage / 10 / duration / ncores
 	 */
-	percent = usage / 10.0 / duration / cgroupSystemInfobeta.ncores;
+	percent = usage / 10.0 / duration / cgroupSystemInfoBeta.ncores;
 
 	/*
 	 * Now we have the system level percentage, however when running in a
@@ -756,16 +756,6 @@ convertcpuusage_v2(int64 usage, int64 duration)
 	 * parent.  Suppose parent has 50% cpu quota and gpdb is consuming all of
 	 * it, then we want gpdb to report the cpu usage as 100% instead of 50%.
 	 */
-
-	if (parent_cfs_quota_us > 0LL)
-	{
-		/*
-		 * Parent cgroup is also limited, scale the percentage to the one in
-		 * parent cgroup.  Do not change the expression to `percent *= ...`,
-		 * that will lose the precision.
-		 */
-		percent = percent * system_cfs_quota_us / parent_cfs_quota_us;
-	}
 
 	return percent;
 }
