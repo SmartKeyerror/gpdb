@@ -64,43 +64,10 @@ static CGroupSystemInfo cgroupSystemInfoAlpha = {
  */
 #define CGROUP_CPUSET_IS_OPTIONAL (GP_VERSION_NUM < 60000)
 
-
-typedef struct PermItem PermItem;
-typedef struct PermList PermList;
-
-struct PermItem
-{
-	CGroupComponentType comp;
-	const char			*prop;
-	int					perm;
-};
-
-struct PermList
-{
-	const PermItem	*items;
-	bool			optional;
-	bool			*presult;
-};
-
-#define foreach_perm_list(i, lists) \
-	for ((i) = 0; (lists)[(i)].items; (i)++)
-
-#define foreach_perm_item(i, items) \
-	for ((i) = 0; (items)[(i)].comp != CGROUP_COMPONENT_UNKNOWN; (i)++)
-
-#define foreach_comp_type(comp) \
-	for ((comp) = CGROUP_COMPONENT_FIRST; \
-		 (comp) < CGROUP_COMPONENT_COUNT; \
-		 (comp)++)
-
-
 /* The functions current file used */
 static void detect_component_dirs_alpha(void);
 static void dump_component_dirs_alpha(void);
 
-static bool perm_list_check_alpha(const PermList *permlist, Oid group, bool report);
-static bool check_permission_alpha(Oid group, bool report);
-static bool check_cpuset_permission_alpha(Oid group, bool report);
 static void check_component_hierarchy_alpha();
 
 static void init_cpu_alpha(void);
@@ -398,44 +365,6 @@ perm_list_check_alpha(const PermList *permlist, Oid group, bool report)
 }
 
 /*
- * Check permissions on group's cgroup dir & interface files.
- *
- * - if report is true then raise an error if any mandatory permission
- *   is not met;
- */
-static bool
-check_permission_alpha(Oid group, bool report)
-{
-	int i;
-
-	foreach_perm_list(i, permlists)
-	{
-		const PermList *permList = &permlists[i];
-
-		if (!perm_list_check_alpha(permList, group, report) && !permList->optional)
-			return false;
-	}
-
-	return true;
-}
-
-/*
- * Same as check_permission, just check cpuset dir & interface files.
- */
-static bool
-check_cpuset_permission_alpha(Oid group, bool report)
-{
-	if (!gp_resource_group_enable_cgroup_cpuset)
-		return true;
-
-	if (!perm_list_check_alpha(&cpusetPermList, group, report) &&
-		!cpusetPermList.optional)
-		return false;
-
-	return true;
-}
-
-/*
  * Check the mount hierarchy of cpu and cpuset subsystem.
  *
  * Raise an error if cpu and cpuset are mounted on the same hierarchy.
@@ -658,7 +587,7 @@ probecgroup_v1(void)
 
 	detect_component_dirs_alpha();
 
-	if (!check_permission_alpha(CGROUP_ROOT_ID, false))
+	if (!normalPermissionCheck(permlists, CGROUP_ROOT_ID, false))
 		return false;
 
 	return true;
@@ -689,7 +618,7 @@ checkcgroup_v1(void)
 	/*
 	 * Check again, this time we will fail on unmet requirements.
 	 */
-	check_permission_alpha(CGROUP_ROOT_ID, true);
+	normalPermissionCheck(permlists, CGROUP_ROOT_ID, true);
 
 	/*
  	 * Check if cpu and cpuset subsystems are mounted on the same hierarchy.
@@ -777,7 +706,7 @@ createcgroup_v1(Oid group)
 	 * although the group dir is created the interface files may not be
 	 * created yet, so we check them repeatedly until everything is ready.
 	 */
-	while (++retry <= MAX_RETRY && !check_permission_alpha(group, false))
+	while (++retry <= MAX_RETRY && !normalPermissionCheck(permlists, group, false))
 		pg_usleep(1000);
 
 	if (retry > MAX_RETRY)
@@ -786,7 +715,7 @@ createcgroup_v1(Oid group)
 		 * still not ready after MAX_RETRY retries, might be a real error,
 		 * raise the error.
 		 */
-		check_permission_alpha(group, true);
+		normalPermissionCheck(permlists, group, true);
 	}
 
 	if (gp_resource_group_enable_cgroup_cpuset)
@@ -828,7 +757,7 @@ create_default_cpuset_group_alpha(void)
 	 * created yet, so we check them repeatedly until everything is ready.
 	 */
 	while (++retry <= MAX_RETRY &&
-		   !check_cpuset_permission_alpha(DEFAULT_CPUSET_GROUP_ID, false))
+		   !cpusetPermissionCheck(&cpusetPermList, DEFAULT_CPUSET_GROUP_ID, false))
 		pg_usleep(1000);
 
 	if (retry > MAX_RETRY)
@@ -837,7 +766,7 @@ create_default_cpuset_group_alpha(void)
 		 * still not ready after MAX_RETRY retries, might be a real error,
 		 * raise the error.
 		 */
-		check_cpuset_permission_alpha(DEFAULT_CPUSET_GROUP_ID, true);
+		cpusetPermissionCheck(&cpusetPermList, DEFAULT_CPUSET_GROUP_ID, true);
 	}
 
 	/*

@@ -574,3 +574,88 @@ getCgroupMountDir()
 
 	return strlen(cgroupSystemInfo->cgroup_dir) != 0;
 }
+
+/*
+ * Check a list of permissions on group.
+ *
+ * - if all the permissions are met then return true;
+ * - otherwise:
+ *   - raise an error if report is true and permList is not optional;
+ *   - or return false;
+ */
+bool
+permListCheck(const PermList *permlist, Oid group, bool report)
+{
+	char path[MAX_CGROUP_PATHLEN];
+	size_t path_size = sizeof(path);
+	int i;
+
+	if (group == CGROUP_ROOT_ID && permlist->presult)
+		*permlist->presult = false;
+
+	foreach_perm_item(i, permlist->items)
+	{
+		CGroupComponentType component = permlist->items[i].comp;
+		const char	*prop = permlist->items[i].prop;
+		int			perm = permlist->items[i].perm;
+
+		if (!buildPathSafe(group, BASEDIR_GPDB, component, prop, path, path_size))
+		{
+			/* Buffer is not large enough for the path */
+
+			if (report && !permlist->optional)
+			{
+				CGROUP_CONFIG_ERROR("invalid %s name '%s': %m",
+									prop[0] ? "file" : "directory",
+									path);
+			}
+			return false;
+		}
+
+		if (access(path, perm))
+		{
+			/* No such file or directory / Permission denied */
+
+			if (report && !permlist->optional)
+			{
+				CGROUP_CONFIG_ERROR("can't access %s '%s': %m",
+									prop[0] ? "file" : "directory",
+									path);
+			}
+			return false;
+		}
+	}
+
+	if (group == CGROUP_ROOT_ID && permlist->presult)
+		*permlist->presult = true;
+
+	return true;
+}
+
+bool
+normalPermissionCheck(const PermList *permlists, Oid group, bool report)
+{
+	int i;
+
+	foreach_perm_list(i, permlists)
+	{
+		const PermList *permList = &permlists[i];
+
+		if (!permListCheck(permList, group, report) && !permList->optional)
+			return false;
+	}
+
+	return true;
+}
+
+bool
+cpusetPermissionCheck(const PermList *cpusetPermList, Oid group, bool report)
+{
+	if (!gp_resource_group_enable_cgroup_cpuset)
+		return true;
+
+	if (!permListCheck(cpusetPermList, group, report) && !cpusetPermList->optional)
+		return false;
+
+	return true;
+}
