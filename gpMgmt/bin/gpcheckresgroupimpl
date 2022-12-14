@@ -223,7 +223,7 @@ class CgroupValidationVersionBeta(CgroupValidation):
 
         try:
             if not os.path.exists(fullpath):
-                self.die("{} '{}' does not exist, please check the file of cgroup.subtree_control if you use Cgroup v2".
+                self.die("{} '{}' does not exist".
                          format(pathtype, fullpath))
             if not os.access(fullpath, mode_bits):
                 self.die("{} '{}' permission denied: require permission '{}'".

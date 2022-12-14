@@ -20,9 +20,8 @@ class CgroupValidation(object):
             with open(proc_mounts_path) as f:
                 for line in f:
                     mount_specs = line.split()
-                    if mount_specs[2] in ["cgroup2"]:
-                        mount_point = os.path.dirname(mount_specs[1])
-                        return mount_point
+                    if mount_specs[2] == "cgroup2":
+                        return mount_specs[1]
         return ""
 
 
@@ -71,7 +70,7 @@ class CgroupValidationVersionBeta(CgroupValidation):
 
         try:
             if not os.path.exists(fullpath):
-                self.die("{} '{}' does not exist, please check the file of cgroup.subtree_control".
+                self.die("{} '{}' does not exist".
                          format(pathtype, fullpath))
             if not os.access(fullpath, mode_bits):
                 self.die("{} '{}' permission denied: require permission '{}'".
