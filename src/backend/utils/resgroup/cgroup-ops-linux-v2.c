@@ -63,6 +63,7 @@ static void dump_component_dir_beta(void);
 
 static void check_component_hierarchy_beta();
 
+static void init_subtree_control(void);
 static void init_cpu_beta(void);
 static void init_cpuset_beta(void);
 
@@ -160,6 +161,20 @@ dump_component_dir_beta(void)
 	buildPath(CGROUP_ROOT_ID, BASEDIR_GPDB, CGROUP_COMPONENT_PLAIN, "", path, path_size);
 
 	elog(LOG, "gpdb dir for cgroup component : %s", path);
+}
+
+/*
+ * Init cgroup.subtree_control, add "cpuset cpu memory pids" to the file cgroup.subtree_control
+ */
+static void
+init_subtree_control(void)
+{
+	char buffer[128];
+	CGroupComponentType component = CGROUP_COMPONENT_PLAIN;
+
+	readStr(CGROUP_ROOT_ID, BASEDIR_PARENT, component, "cgroup.subtree_control",
+			buffer, sizeof(buffer));
+	writeStr(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cgroup.subtree_control", buffer);
 }
 
 /*
@@ -321,6 +336,8 @@ checkcgroup_v2(void)
 static void
 initcgroup_v2(void)
 {
+	init_subtree_control();
+
 	init_cpu_beta();
 	init_cpuset_beta();
 
