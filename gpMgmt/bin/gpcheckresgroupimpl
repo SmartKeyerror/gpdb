@@ -27,9 +27,13 @@ class CgroupValidation(object):
             with open(proc_mounts_path) as f:
                 for line in f:
                     mount_specs = line.split()
-                    if mount_specs[2] in ["cgroup", "cgroup2"]:
-                        mount_point = os.path.dirname(mount_specs[1])
-                        return mount_point
+                    mount_type = mount_specs[2]
+
+                    if mount_type == "cgroup":
+                        return os.path.dirname(mount_specs[1])
+
+                    if mount_type == "cgroup2" and mount_specs[1].split("/")[-1] != "unified":
+                        return mount_specs[1]
         return ""
 
 
