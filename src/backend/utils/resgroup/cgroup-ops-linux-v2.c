@@ -169,12 +169,12 @@ dump_component_dir_beta(void)
 static void
 init_subtree_control(void)
 {
-	char buffer[128];
 	CGroupComponentType component = CGROUP_COMPONENT_PLAIN;
 
-	readStr(CGROUP_ROOT_ID, BASEDIR_PARENT, component, "cgroup.subtree_control",
-			buffer, sizeof(buffer));
-	writeStr(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cgroup.subtree_control", buffer);
+	writeStr(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cgroup.subtree_control", "+cpuset");
+	writeStr(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cgroup.subtree_control", "+cpu");
+	writeStr(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cgroup.subtree_control", "+memory");
+	writeStr(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cgroup.subtree_control", "+pids");
 }
 
 /*
