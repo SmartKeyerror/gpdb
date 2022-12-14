@@ -42,7 +42,6 @@ char component_dirs[CGROUP_COMPONENT_COUNT][MAX_CGROUP_PATHLEN] =
 const char *
 getComponentName(CGroupComponentType component)
 {
-	Assert(component > CGROUP_COMPONENT_UNKNOWN);
 	Assert(component < CGROUP_COMPONENT_COUNT);
 
 	return component_names[component];
@@ -71,7 +70,6 @@ getComponentType(const char *name)
 const char *
 getComponentDir(CGroupComponentType component)
 {
-	Assert(component > CGROUP_COMPONENT_UNKNOWN);
 	Assert(component < CGROUP_COMPONENT_COUNT);
 
 	return component_dirs[component];
@@ -83,7 +81,6 @@ getComponentDir(CGroupComponentType component)
 void
 setComponentDir(CGroupComponentType component, const char *dir)
 {
-	Assert(component > CGROUP_COMPONENT_UNKNOWN);
 	Assert(component < CGROUP_COMPONENT_COUNT);
 	Assert(strlen(dir) < MAX_CGROUP_PATHLEN);
 
