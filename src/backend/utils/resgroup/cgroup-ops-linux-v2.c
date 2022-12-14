@@ -61,8 +61,6 @@ static CGroupSystemInfo cgroupSystemInfoBeta = {
 /* The functions current file used */
 static void dump_component_dir_beta(void);
 
-static void check_component_hierarchy_beta();
-
 static void init_cpu_beta(void);
 static void init_cpuset_beta(void);
 
@@ -289,15 +287,6 @@ checkcgroup_v2(void)
 	 */
 	normalPermissionCheck(permlists, CGROUP_ROOT_ID, true);
 
-	/*
- 	 * Check if cpu and cpuset subsystems are mounted on the same hierarchy.
- 	 * We do not allow they mount on the same hierarchy, because writing pid
- 	 * to DEFAULT_CPUSET_GROUP_ID in attachcgroup will cause the
- 	 * removal of the pid in group BASEDIR_GPDB, which will make cpu usage
- 	 * out of control.
-	 */
-	if (!CGROUP_CPUSET_IS_OPTIONAL)
-		check_component_hierarchy_beta();
 
 	/*
 	 * Dump the cgroup comp dirs to logs.
