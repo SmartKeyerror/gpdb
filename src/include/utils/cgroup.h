@@ -137,6 +137,13 @@ extern int64 readInt64(Oid group, BaseDirType base, CGroupComponentType componen
 extern void writeInt64(Oid group, BaseDirType base, CGroupComponentType component,
 					   const char *filename, int64 x);
 
+/* Read an int32 value from a cgroup interface file. */
+extern int32 readInt32(Oid group, BaseDirType base, CGroupComponentType component,
+					   const char *filename);
+/* Write an int32 value to a cgroup interface file. */
+extern void writeInt32(Oid group, BaseDirType base, CGroupComponentType component,
+					   const char *filename, int32 x);
+
 /* Read a string value from a cgroup interface file. */
 extern void readStr(Oid group, BaseDirType base, CGroupComponentType component,
 					const char *filename, char *str, int len);

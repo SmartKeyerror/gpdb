@@ -385,6 +385,48 @@ writeInt64(Oid group, BaseDirType base, CGroupComponentType component,
 }
 
 /*
+ * Read an int32 value from a cgroup interface file.
+ */
+int32
+readInt32(Oid group, BaseDirType base, CGroupComponentType component,
+		  const char *filename)
+{
+	int32 x;
+	char data[MAX_INT_STRING_LEN];
+	size_t data_size = sizeof(data);
+	char path[MAX_CGROUP_PATHLEN];
+	size_t path_size = sizeof(path);
+
+	buildPath(group, base, component, filename, path, path_size);
+
+	readData(path, data, data_size);
+
+	if (sscanf(data, "%d", &x) != 1)
+		CGROUP_ERROR("invalid number '%s'", data);
+
+	return x;
+}
+
+/*
+ * Write an int32 value to a cgroup interface file.
+ */
+void
+writeInt32(Oid group, BaseDirType base, CGroupComponentType component,
+		   const char *filename, int32 x)
+{
+	char data[MAX_INT_STRING_LEN];
+	size_t data_size = sizeof(data);
+	char path[MAX_CGROUP_PATHLEN];
+	size_t path_size = sizeof(path);
+
+	buildPath(group, base, component, filename, path, path_size);
+
+	snprintf(data, data_size, "%d", x);
+
+	writeData(path, data, strlen(data));
+}
+
+/*
  * Read a string value from a cgroup interface file.
  */
 void

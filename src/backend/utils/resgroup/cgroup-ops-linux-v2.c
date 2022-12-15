@@ -202,9 +202,8 @@ init_cpu_beta(void)
 	 * value), it has very bad effect on overall system performance,
 	 * especially on 1-core or 2-core low-end systems.
 	 */
-	weight = readInt64(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cpu.weight");
-	weight = weight * gp_resource_group_cpu_priority;
-	writeInt64(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cpu.weight", weight);
+	weight = 100 * gp_resource_group_cpu_priority;
+	writeInt32(CGROUP_ROOT_ID, BASEDIR_GPDB, component, "cpu.weight", weight);
 }
 
 /*
