@@ -21,7 +21,7 @@ return True $$ LANGUAGE plpython3u;
 CREATE
 
 -- create a resource group that contains all the cpu cores
-CREATE FUNCTION create_allcores_group(grp TEXT) RETURNS BOOL AS $$ import pg conn = pg.connect(dbname="isolation2resgrouptest") file = "@cgroup_mnt_point@/cpuset/gpdb/cpuset.cpus" fd = open(file) line = fd.readline() fd.close() line = line.strip('\n') sql = "create resource group " + grp + " with (" \ + "memory_limit=1, cpuset='" + line + "')" result = conn.query(sql) 
+CREATE FUNCTION create_allcores_group(grp TEXT) RETURNS BOOL AS $$ import pg conn = pg.connect(dbname="isolation2resgrouptest") file = "@cgroup_mnt_point@/cpuset/gpdb/cpuset.cpus" fd = open(file) line = fd.readline() fd.close() line = line.strip('\n') sql = "create resource group " + grp + " with (" \ + "cpuset='" + line + "')" result = conn.query(sql) 
 file = "@cgroup_mnt_point@/cpuset/gpdb/1/cpuset.cpus" fd = open(file) line = fd.readline() fd.close() line = line.strip('\n') if line != "0": return False 
 return True $$ LANGUAGE plpython3u;
 CREATE
