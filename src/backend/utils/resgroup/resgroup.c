@@ -54,6 +54,7 @@
 #include "utils/vmem_tracker.h"
 #include "utils/cgroup-ops-v1.h"
 #include "utils/cgroup-ops-dummy.h"
+#include "utils/cgroup-ops-v2.h"
 
 #define InvalidSlotId	(-1)
 #define RESGROUP_MAX_SLOTS	(MaxConnections)
@@ -418,6 +419,11 @@ initCgroup(void)
 	{
 		cgroupOpsRoutine = get_group_routine_alpha();
 		cgroupSystemInfo = get_cgroup_sysinfo_alpha();
+	}
+	else
+	{
+		cgroupOpsRoutine = get_group_routine_beta();
+		cgroupSystemInfo = get_cgroup_sysinfo_beta();
 	}
 #else
 	cgroupOpsRoutine = get_cgroup_routine_dummy();
