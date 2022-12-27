@@ -308,63 +308,6 @@ dump_component_dirs_alpha(void)
 
 
 /*
- * Check a list of permissions on group.
- *
- * - if all the permissions are met then return true;
- * - otherwise:
- *   - raise an error if report is true and permlist is not optional;
- *   - or return false;
- */
-static bool
-perm_list_check_alpha(const PermList *permlist, Oid group, bool report)
-{
-	char path[MAX_CGROUP_PATHLEN];
-	size_t path_size = sizeof(path);
-	int i;
-
-	if (group == CGROUP_ROOT_ID && permlist->presult)
-		*permlist->presult = false;
-
-	foreach_perm_item(i, permlist->items)
-	{
-		CGroupComponentType component = permlist->items[i].comp;
-		const char	*prop = permlist->items[i].prop;
-		int			perm = permlist->items[i].perm;
-
-		if (!buildPathSafe(group, BASEDIR_GPDB, component, prop, path, path_size))
-		{
-			/* Buffer is not large enough for the path */
-
-			if (report && !permlist->optional)
-			{
-				CGROUP_CONFIG_ERROR("invalid %s name '%s': %m",
-									prop[0] ? "file" : "directory",
-									path);
-			}
-			return false;
-		}
-
-		if (access(path, perm))
-		{
-			/* No such file or directory / Permission denied */
-
-			if (report && !permlist->optional)
-			{
-				CGROUP_CONFIG_ERROR("can't access %s '%s': %m",
-									prop[0] ? "file" : "directory",
-									path);
-			}
-			return false;
-		}
-	}
-
-	if (group == CGROUP_ROOT_ID && permlist->presult)
-		*permlist->presult = true;
-
-	return true;
-}
-
-/*
  * Check the mount hierarchy of cpu and cpuset subsystem.
  *
  * Raise an error if cpu and cpuset are mounted on the same hierarchy.

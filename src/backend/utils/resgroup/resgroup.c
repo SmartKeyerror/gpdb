@@ -415,7 +415,7 @@ void
 initCgroup(void)
 {
 #ifdef __linux__
-	if (!gp_resource_group_enable_cgroup_version_two)
+	if (Gp_resource_manager_policy == RESOURCE_MANAGER_POLICY_GROUP)
 	{
 		cgroupOpsRoutine = get_group_routine_alpha();
 		cgroupSystemInfo = get_cgroup_sysinfo_alpha();

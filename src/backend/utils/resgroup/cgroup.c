@@ -6,6 +6,7 @@
 #include "miscadmin.h"
 #include "utils/cgroup.h"
 #include "utils/resgroup.h"
+#include "utils/resource_manager.h"
 #include "utils/vmem_tracker.h"
 #include "storage/shmem.h"
 
@@ -582,7 +583,7 @@ getCgroupMountDir()
 	{
 		char * p;
 
-		if (!gp_resource_group_enable_cgroup_version_two)
+		if (Gp_resource_manager_policy == RESOURCE_MANAGER_POLICY_GROUP)
 		{
 			/* For version 1, we need to find the mnt_type equals to "cgroup" */
 			if (strcmp(me->mnt_type, "cgroup"))

@@ -36,6 +36,7 @@
 #include <sys/sysinfo.h>
 #include <stdio.h>
 #include <mntent.h>
+#include <regex.h>
 
 static CGroupSystemInfo cgroupSystemInfoBeta = {
 		0,
@@ -665,6 +666,9 @@ setcpulimit_v2(Oid group, int cpu_hard_limit)
  *
  * For version 1, the default value of cpu.shares is 1024, corresponding to
  * our cpu_soft_priority, which default value is 100, so we need to adjust it.
+ *
+ * The weight in the range [1, 10000], so the cpu_soft_priority is in range [1, 976.5625].
+ * In Greenplum, we define the range [1, 500].
  */
 static void
 setcpupriority_v2(Oid group, int shares)
@@ -676,14 +680,35 @@ setcpupriority_v2(Oid group, int shares)
 
 /*
  * Get the cpu usage of the OS group, that is the total cpu time obtained
- * by this OS group, in nano seconds.
+ * by this OS group, in nanoseconds.
  */
 static int64
 getcpuusage_v2(Oid group)
 {
+	regex_t 	reg;
+	char 		buffer[4096], result[128];
+	regmatch_t 	pmatch;
+	const char *pattern = "usage_usec ([0-9]+)";
 	CGroupComponentType component = CGROUP_COMPONENT_PLAIN;
 
-	return readInt64(group, BASEDIR_GPDB, component, "cpuacct.usage");
+	/*
+	 * We read the value of "usage_usec", all time durations are in microseconds,
+	 * due to compatible with cgroup v1, return this value is nanoseconds.
+	 */
+	readStr(group, BASEDIR_GPDB, component, "cpu.stat", buffer, 4096);
+
+	regcomp(&reg, pattern, REG_EXTENDED);
+
+	int status = regexec(&reg, buffer, 1, &pmatch, 0);
+
+	if (status == REG_NOMATCH)
+		CGROUP_ERROR("can't read the value of usage_usec from /sys/fs/cgroup/gpdb/cpu.stat");
+	else if (pmatch.rm_so != -1)
+		memcpy(result, buffer + pmatch.rm_so + strlen("usage_usec "), pmatch.rm_eo - pmatch.rm_so);
+
+	regfree(&reg);
+
+	return atoll(result) * 1000;
 }
 
 /*
