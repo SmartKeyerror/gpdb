@@ -324,6 +324,7 @@ HeapTupleSatisfiesSelf(Relation relation, HeapTuple htup, Snapshot snapshot, Buf
 
 			if (!TransactionIdIsCurrentTransactionId(HeapTupleHeaderGetRawXmax(tuple)))
 			{
+				elog(ERROR, "tuple deleted by other transactions");
 				/* deleting subtransaction must have aborted */
 				SetHintBits(tuple, buffer, relation, HEAP_XMAX_INVALID,
 							InvalidTransactionId);
@@ -379,6 +380,8 @@ HeapTupleSatisfiesSelf(Relation relation, HeapTuple htup, Snapshot snapshot, Buf
 		/* it must have aborted or crashed */
 		return true;
 	}
+
+	elog(ERROR, "gotta!");
 
 	if (TransactionIdIsCurrentTransactionId(HeapTupleHeaderGetRawXmax(tuple)))
 	{
