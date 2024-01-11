@@ -24,9 +24,6 @@
 
 #include <zstd.h>
 
-static char *compress_string(const char *src, int uncompressed_size, int *compressed_size_p);
-static char *uncompress_string(const char *src, int size, int *uncompressed_size_p);
-
 /* zstandard compression level to use. */
 #define COMPRESS_LEVEL 3
 
@@ -99,7 +96,7 @@ deserializeNode(const char *strNode, int size)
  *
  * returns the compressed data and the size of the compressed data.
  */
-static char *
+char *
 compress_string(const char *src, int uncompressed_size, int *size)
 {
 	static ZSTD_CCtx  *cxt = NULL;      /* ZSTD compression context */
@@ -133,7 +130,7 @@ compress_string(const char *src, int uncompressed_size, int *size)
 /*
  * Uncompress the binary string
  */
-static char *
+char *
 uncompress_string(const char *src, int size, int *uncompressed_size_p)
 {
 	static ZSTD_DCtx  *cxt = NULL;      /* ZSTD decompression context */

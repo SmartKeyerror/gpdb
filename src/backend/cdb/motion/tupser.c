@@ -438,6 +438,10 @@ SerializeTuple(TupleTableSlot *slot, SerTupInfo *pSerInfo, struct directTranspor
 	tupbody = (char *) mintuple + MINIMAL_TUPLE_DATA_OFFSET;
 	tupbodylen = mintuple->t_len - MINIMAL_TUPLE_DATA_OFFSET;
 
+	int result = 0;
+	tupbody = compress_string(tupbody, tupbodylen, &result);
+	tupbodylen = result;
+
 	/* total on-wire footprint: */
 	tuplen = tupbodylen + sizeof(int);
 
@@ -668,11 +672,16 @@ CvtChunksToTup(TupleChunkList tcList, SerTupInfo *pSerInfo, TupleRemapper *remap
 			unsigned int tuplen = tupbodylen + MINIMAL_TUPLE_DATA_OFFSET;
 			char	   *tupbody;
 
+			int result = 0;
+			char *decompressed;
+			decompressed = uncompress_string(pos, tuplen, &result);
+			tuplen = result;
+
 			tup = palloc(tuplen);
 			tup->t_len = tuplen;
 
 			tupbody = (char *) tup + MINIMAL_TUPLE_DATA_OFFSET;
-			memcpy(tupbody, pos, tupbodylen);
+			memcpy(tupbody, decompressed, tupbodylen);
 		}
 	}
 
