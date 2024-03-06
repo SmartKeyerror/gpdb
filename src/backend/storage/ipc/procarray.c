@@ -2084,6 +2084,7 @@ CreateDistributedSnapshot(DistributedSnapshot *ds)
 	if (xmin < globalXminDistributedSnapshots)
 		globalXminDistributedSnapshots = xmin;
 
+	Assert(globalXminDistributedSnapshots == xmin);
 	/*
 	 * Copy the information we just captured under lock and then sorted into
 	 * the distributed snapshot.
