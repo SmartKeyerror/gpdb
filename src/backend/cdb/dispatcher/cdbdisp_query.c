@@ -132,7 +132,6 @@ static SerializedParams *serializeParamsForDispatch(QueryDesc *queryDesc,
 													Bitmapset *sendParams);
 
 
-
 /*
  * Compose and dispatch the MPPEXEC commands corresponding to a plan tree
  * within a complete parallel plan. (A plan tree will correspond either

@@ -96,6 +96,9 @@
 
 #include "cdb/memquota.h"
 
+#include "libpq-fe.h"
+#include "libpq-int.h"
+
 static bool tlist_matches_tupdesc(PlanState *ps, List *tlist, Index varno, TupleDesc tupdesc);
 static void ShutdownExprContext(ExprContext *econtext, bool isCommit);
 
@@ -1500,6 +1503,18 @@ getGpExecIdentity(QueryDesc *queryDesc,
 	}
 }
 
+
+static int
+compare_int(const void *va, const void *vb)
+{
+	int			a = *((const int *) va);
+	int			b = *((const int *) vb);
+
+	if (a == b)
+		return 0;
+	return (a > b) ? 1 : -1;
+}
+
 /*
  * End the gp-specific part of the executor.
  *
@@ -1576,6 +1591,72 @@ void mppExecutorFinishup(QueryDesc *queryDesc)
 
 		/* sum up rejected rows if any (single row error handling only) */
 		cdbdisp_sumRejectedRows(pr);
+
+		CdbPgResults cdb_pgresults = {NULL, 0};
+
+
+		cdbdisp_returnResults(pr, &cdb_pgresults);
+
+		int totalWaits = 0;
+		int resultCount = cdb_pgresults.numResults;
+		MemoryContext oldContext;
+		int *waitGxids = NULL;
+
+		struct pg_result **results = cdb_pgresults.pg_results;
+		/* gather all the waited gxids from segments and remove the duplicates */
+		for (int i = 0; i < resultCount; i++)
+			totalWaits += results[i]->nWaits;
+
+		if (totalWaits > 0)
+			waitGxids = palloc(sizeof(int) * totalWaits);
+
+		totalWaits = 0;
+		for (int i = 0; i < resultCount; i++)
+		{
+			struct pg_result *result = results[i];
+
+			if (result->nWaits > 0)
+			{
+				memcpy(&waitGxids[totalWaits], result->waitGxids, sizeof(int) * result->nWaits);
+				totalWaits += result->nWaits;
+			}
+			PQclear(result);
+		}
+
+		if (totalWaits > 0)
+		{
+			int lastRepeat = -1;
+			if (MyTmGxactLocal->waitGxids)
+			{
+				list_free(MyTmGxactLocal->waitGxids);
+				MyTmGxactLocal->waitGxids = NULL;
+			}
+
+			qsort(waitGxids, totalWaits, sizeof(int), compare_int);
+
+			oldContext = MemoryContextSwitchTo(TopTransactionContext);
+			for (int i = 0; i < totalWaits; i++)
+			{
+				if (waitGxids[i] == lastRepeat)
+					continue;
+				MyTmGxactLocal->waitGxids = lappend_int(MyTmGxactLocal->waitGxids, waitGxids[i]);
+				lastRepeat = waitGxids[i];
+			}
+			MemoryContextSwitchTo(oldContext);
+		}
+
+		if (waitGxids)
+			pfree(waitGxids);
+
+		if (results)
+			pfree(results);
+
+		ListCell *l;
+		foreach(l, MyTmGxactLocal->waitGxids)
+		{
+			GxactLockTableWait(lfirst_int(l));
+			elog(WARNING, "dtx %lu is try to waiting the dtx %lu in QD", MyTmGxact->gxid, lfirst_int(l));
+		}
 
 		/*
 		 * Check and free the results of all gangs. If any QE had an

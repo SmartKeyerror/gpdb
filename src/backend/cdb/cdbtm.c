@@ -132,7 +132,6 @@ static void setCurrentDtxState(DtxState state);
 static bool isDtxQueryDispatcher(void);
 static void performDtxProtocolCommitPrepared(const char *gid, bool raiseErrorIfNotFound);
 static void performDtxProtocolAbortPrepared(const char *gid, bool raiseErrorIfNotFound);
-static void sendWaitGxidsToQD(List *waitGxids);
 
 extern void GpDropTempTables(void);
 
@@ -2039,7 +2038,7 @@ performDtxProtocolPrepare(const char *gid)
 	setDistributedTransactionContext(DTX_CONTEXT_QE_PREPARED);
 }
 
-static void
+void
 sendWaitGxidsToQD(List *waitGxids)
 {
 	ListCell *lc;

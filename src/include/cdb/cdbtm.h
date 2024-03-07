@@ -360,4 +360,6 @@ extern void SetDtxRecoveryEvent(DtxRecoveryEvent event);
 extern void DtxRecoveryMain(Datum main_arg);
 extern bool DtxRecoveryStartRule(Datum main_arg);
 
+extern void sendWaitGxidsToQD(List *waitGxids);
+
 #endif   /* CDBTM_H */

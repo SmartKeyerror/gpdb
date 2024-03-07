@@ -67,6 +67,7 @@
 #include "parser/parsetree.h"
 #include "utils/lsyscache.h"
 #include "utils/snapmgr.h"
+#include "cdb/cdbtm.h"
 
 
 static bool ExecOnConflictUpdate(ModifyTableState *mtstate,
@@ -2763,6 +2764,9 @@ ExecModifyTable(PlanState *pstate)
 		fireASTriggers(node);
 
 	node->mt_done = true;
+
+	if (Gp_role == GP_ROLE_EXECUTE)
+		sendWaitGxidsToQD(MyTmGxactLocal->waitGxids);
 
 	return NULL;
 }
