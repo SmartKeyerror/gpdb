@@ -1459,3 +1459,28 @@ explain (costs off) select (select b from bar)[(select 1)][1:3] from bar;
 select (select b from bar)[(select 1)][1:3] from bar;
 
 drop table bar;
+
+-- Test subplan relids problem wrapped by PlaceHolderVar
+-- More details can be found at https://github.com/greenplum-db/gpdb/pull/17265
+drop table if exists foo;
+drop table if exists bar;
+drop table if exists buz;
+
+create table foo(a int, b int);
+create table bar(c int, d varchar);
+create table buz(i int, j int);
+
+explain select * from foo
+where EXISTS (
+    select * from bar where 
+        case when EXISTS (select foo.a from buz where bar.d is NULL) 
+        then 0 else 1 end
+        = bar.c
+);
+
+drop table foo;
+drop table bar;
+drop table buz;
+
+
+
