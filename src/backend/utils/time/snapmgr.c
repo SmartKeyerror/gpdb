@@ -2523,7 +2523,7 @@ XidInMVCCSnapshot(TransactionId xid, Snapshot snapshot,
 
 	localCheckResult = XidInMVCCSnapshot_Local(xid, snapshot) ? XID_IN_SNAPSHOT : XID_NOT_IN_SNAPSHOT;
 
-	if (localCheckResult == XID_NOT_IN_SNAPSHOT)
+	if (localCheckResult == XID_NOT_IN_SNAPSHOT && Gp_role == GP_ROLE_EXECUTE)
 	{
 		DistributedTransactionId distribXid = InvalidDistributedTransactionId;
 		if (!LocalDistribXactCache_CommittedFind(xid,
