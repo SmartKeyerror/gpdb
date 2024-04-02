@@ -2528,7 +2528,7 @@ XidInMVCCSnapshot(TransactionId xid, Snapshot snapshot,
 		DistributedTransactionId distribXid = InvalidDistributedTransactionId;
 		if (!LocalDistribXactCache_CommittedFind(xid,
 												 &distribXid))
-			DistributedLog_CommittedCheck();
+			DistributedLog_CommittedCheck(xid, &distribXid);
 
 		MyTmGxactLocal->committedGxids = lappend(MyTmGxactLocal->committedGxids, &distribXid);
 	}
