@@ -1478,6 +1478,11 @@ resetTmGxact(void)
 		list_free(MyTmGxactLocal->waitGxids);
 		MyTmGxactLocal->waitGxids = NULL;
 	}
+	if (MyTmGxactLocal->committedGxids != NULL)
+	{
+		list_free(MyTmGxactLocal->committedGxids);
+		MyTmGxactLocal->committedGxids = NULL;
+	}
 	setCurrentDtxState(DTX_STATE_NONE);
 }
 
