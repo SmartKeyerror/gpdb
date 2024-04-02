@@ -1449,6 +1449,9 @@ exec_mpp_query(const char *query_string,
 		if (Gp_role == GP_ROLE_EXECUTE && Gp_is_writer)
 			pgstat_send_qd_tabstats();
 
+		if (Gp_role == GP_ROLE_EXECUTE && MyTmGxactLocal->committedGxids != NIL)
+			sendLocalCommittedGxidsToQD(MyTmGxactLocal->committedGxids);
+
 		(*receiver->rDestroy) (receiver);
 
 		PortalDrop(portal, false);

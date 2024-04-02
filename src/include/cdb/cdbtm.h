@@ -216,6 +216,7 @@ typedef struct TMGXACT
 
 	bool						includeInCkpt;
 	int							sessionId;
+	bool						isPrepared;
 }	TMGXACT;
 
 typedef struct TMGXACTLOCAL
@@ -235,6 +236,7 @@ typedef struct TMGXACTLOCAL
 	Bitmapset					*dtxSegmentsMap;
 	List						*dtxSegments;
 	List						*waitGxids;
+	List						*committedGxids;
 }	TMGXACTLOCAL;
 
 typedef struct TMGXACTSTATUS
@@ -361,5 +363,6 @@ extern void DtxRecoveryMain(Datum main_arg);
 extern bool DtxRecoveryStartRule(Datum main_arg);
 
 extern void sendWaitGxidsToQD(List *waitGxids);
+extern void sendLocalCommittedGxidsToQD(List *Gxids);
 
 #endif   /* CDBTM_H */

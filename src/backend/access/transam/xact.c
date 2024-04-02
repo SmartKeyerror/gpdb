@@ -2878,6 +2878,11 @@ CommitTransaction(void)
 
 	TRACE_POSTGRESQL_TRANSACTION_COMMIT(MyProc->lxid);
 
+	LWLockAcquire(ProcArrayLock, LW_SHARED);
+	if (notifyCommittedDtxTransactionIsNeeded())
+		MyTmGxact->isPrepared = true;
+	LWLockRelease(ProcArrayLock);
+
 	/*
 	 * Do 2nd phase of commit to all QE. NOTE: we can't process
 	 * signals (which may attempt to abort our now partially-completed

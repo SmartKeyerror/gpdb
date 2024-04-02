@@ -73,6 +73,7 @@
 #include "cdb/cdbtm.h"
 #include "cdb/cdbvars.h"
 #include "utils/guc.h"
+#include "access/distributedlog.h"
 
 
 /*
@@ -2446,6 +2447,8 @@ XidInMVCCSnapshotCheckResult
 XidInMVCCSnapshot(TransactionId xid, Snapshot snapshot,
 				  bool distributedSnapshotIgnore, bool *setDistributedSnapshotIgnore)
 {
+	XidInMVCCSnapshotCheckResult localCheckResult;
+
 	Assert (setDistributedSnapshotIgnore != NULL);
 	*setDistributedSnapshotIgnore = false;
 
@@ -2518,7 +2521,18 @@ XidInMVCCSnapshot(TransactionId xid, Snapshot snapshot,
 		}
 	}
 
-	return XidInMVCCSnapshot_Local(xid, snapshot) ? XID_IN_SNAPSHOT : XID_NOT_IN_SNAPSHOT;
+	localCheckResult = XidInMVCCSnapshot_Local(xid, snapshot) ? XID_IN_SNAPSHOT : XID_NOT_IN_SNAPSHOT;
+
+	if (localCheckResult == XID_NOT_IN_SNAPSHOT)
+	{
+		DistributedTransactionId distribXid = InvalidDistributedTransactionId;
+		if (!LocalDistribXactCache_CommittedFind(xid,
+												 &distribXid))
+			DistributedLog_CommittedCheck();
+
+		MyTmGxactLocal->committedGxids = lappend(MyTmGxactLocal->committedGxids, &distribXid);
+	}
+	return 	localCheckResult;
 }
 
 /*

@@ -430,6 +430,7 @@ ProcArrayEndGxact(TMGXACT *tmGxact)
 	tmGxact->xminDistributedSnapshot = InvalidDistributedTransactionId;
 	tmGxact->includeInCkpt = false;
 	tmGxact->sessionId = 0;
+	tmGxact->isPrepared = false;
 
 	/*
 	 * Remeber that the distributed xid is just a plain counter, so we just use the `<` for
@@ -2064,7 +2065,7 @@ CreateDistributedSnapshot(DistributedSnapshot *ds)
 			xmin = gxid;
 		}
 
-		if (gxact_candidate == MyTmGxact)
+		if (gxact_candidate == MyTmGxact || gxact_candidate->isPrepared)
 			continue;
 
 		ds->inProgressXidArray[count++] = gxid;
@@ -5366,4 +5367,19 @@ ResGroupMoveNotifyInitiator(pid_t callerPid)
 		break;
 	}
 	LWLockRelease(ProcArrayLock);
+}
+
+
+void
+markGxidIsPrepared(int gxid)
+{
+	ProcArrayStruct *arrayP = procArray;
+
+	for (int k = 0; k < arrayP->numProcs; k++)
+	{
+		int         pgprocno = arrayP->pgprocnos[k];
+		volatile TMGXACT	*gxact_candidate = &allTmGxact[pgprocno];
+		if (gxact_candidate->gxid == gxid)
+			gxact_candidate->isPrepared = true;
+	}
 }

@@ -60,6 +60,9 @@
 
 #include "nodes/plannodes.h"
 
+#include "storage/procarray.h"
+#include "storage/proc.h"
+
 typedef struct TmControlBlock
 {
 	bool						DtmStarted;
@@ -1319,6 +1322,25 @@ doDispatchDtxProtocolCommand(DtxProtocolCommand dtxProtocolCommand,
 		}
 	}
 
+
+	ListCell *l;
+	LWLockAcquire(ProcArrayLock, LW_EXCLUSIVE);
+	for (i = 0; i < resultCount; i++)
+	{
+		struct pg_result *result = results[i];
+
+		if (result->nCommitted > 0)
+		{
+			for (int j = 0; j < result->nCommitted; j++)
+			{
+				int gxid = result->localCommittedGxids[j];
+				markGxidIsPrepared(gxid);
+			}
+		}
+		PQclear(result);
+	}
+	LWLockRelease(ProcArrayLock);
+
 	/* gather all the waited gxids from segments and remove the duplicates */
 	for (i = 0; i < resultCount; i++)
 		totalWaits += results[i]->nWaits;
@@ -1444,6 +1466,7 @@ resetTmGxact(void)
 	MyTmGxact->xminDistributedSnapshot = InvalidDistributedTransactionId;
 	MyTmGxact->includeInCkpt = false;
 	MyTmGxact->sessionId = 0;
+	MyTmGxact->isPrepared = false;
 
 	MyTmGxactLocal->explicitBeginRemembered = false;
 	MyTmGxactLocal->writerGangLost = false;
@@ -2056,6 +2079,27 @@ sendWaitGxidsToQD(List *waitGxids)
 	}
 	pq_endmessage(&buf);
 }
+
+
+void
+sendLocalCommittedGxidsToQD(List *Gxids)
+{
+	ListCell *lc;
+	StringInfoData buf;
+	int len = list_length(Gxids);
+
+	if (len == 0)
+		return;
+
+	pq_beginmessage(&buf, 'z');
+	pq_sendint(&buf, len, 4);
+	foreach(lc, Gxids)
+	{
+		pq_sendint(&buf, lfirst_int(lc), 4);
+	}
+	pq_endmessage(&buf);
+}
+
 /**
  * On the QE, run the Commit one-phase operation.
  */

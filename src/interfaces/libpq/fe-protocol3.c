@@ -536,6 +536,36 @@ pqParseInput3(PGconn *conn)
 						}
 					}
 					break;
+
+				case 'z':
+					/*
+					 * 'commit prepared' and 'one-phase commit' reports a list of gxids
+					 * that the transaction has waited.
+					 */
+					if (conn->result == NULL)
+					{
+						conn->result = PQmakeEmptyPGresult(conn, PGRES_COMMAND_OK);
+						if (!conn->result)
+							return;
+					}
+
+					if (pqGetInt(&conn->result->nCommitted, 4, conn))
+						return;
+
+					if (conn->result->nCommitted > 0)
+					{
+						if (conn->result->localCommittedGxids == NULL)
+							conn->result->localCommittedGxids =
+									malloc(sizeof(int) * conn->result->nCommitted);
+						for (i = 0; i < conn->result->nCommitted; i++)
+						{
+							int gxid;
+							if (pqGetInt(&gxid, 4, conn))
+								return;
+							conn->result->localCommittedGxids[i] = gxid;
+						}
+					}
+					break;
 #endif
 				default:
 					printfPQExpBuffer(&conn->errorMessage,

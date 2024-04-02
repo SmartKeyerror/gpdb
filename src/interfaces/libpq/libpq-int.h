@@ -254,6 +254,8 @@ struct pg_result
 	/* GPDB */
 	int		nWaits;
 	int		*waitGxids;
+	int		nCommitted;
+	int 	*localCommittedGxids;
 };
 
 /* PGAsyncStatusType defines the state of the query-execution state machine */
