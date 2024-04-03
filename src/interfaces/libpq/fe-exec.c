@@ -186,6 +186,8 @@ PQmakeEmptyPGresult(PGconn *conn, ExecStatusType status)
 	result->numCompleted = 0;
 	result->nWaits = 0;
 	result->waitGxids = NULL;
+	result->nCommitted = 0;
+	result->localCommittedGxids = NULL;
 
 	if (conn)
 	{
