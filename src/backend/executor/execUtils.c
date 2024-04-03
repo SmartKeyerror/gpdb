@@ -1655,7 +1655,6 @@ void mppExecutorFinishup(QueryDesc *queryDesc)
 		foreach(l, MyTmGxactLocal->waitGxids)
 		{
 			GxactLockTableWait(lfirst_int(l));
-			elog(WARNING, "dtx %lu is try to waiting the dtx %lu in QD", MyTmGxact->gxid, lfirst_int(l));
 		}
 
 		/*
