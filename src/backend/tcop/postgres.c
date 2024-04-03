@@ -1450,7 +1450,10 @@ exec_mpp_query(const char *query_string,
 			pgstat_send_qd_tabstats();
 
 		if (Gp_role == GP_ROLE_EXECUTE && MyTmGxactLocal->committedGxids != NIL)
-			sendLocalCommittedGxidsToQD(MyTmGxactLocal->committedGxids);
+		{
+			List *committedGxids = list_copy(MyTmGxactLocal->committedGxids);
+			sendLocalCommittedGxidsToQD(committedGxids);
+		}
 
 		(*receiver->rDestroy) (receiver);
 
