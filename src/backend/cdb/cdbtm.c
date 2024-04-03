@@ -1337,7 +1337,6 @@ doDispatchDtxProtocolCommand(DtxProtocolCommand dtxProtocolCommand,
 				markGxidIsPrepared(gxid);
 			}
 		}
-		PQclear(result);
 	}
 	LWLockRelease(ProcArrayLock);
 
