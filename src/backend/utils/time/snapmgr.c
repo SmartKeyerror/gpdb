@@ -2530,10 +2530,13 @@ XidInMVCCSnapshot(TransactionId xid, Snapshot snapshot,
 												 &distribXid))
 			DistributedLog_CommittedCheck(xid, &distribXid);
 
-		MemoryContext oldContext;
-		oldContext = MemoryContextSwitchTo(TopMemoryContext);
-		MyTmGxactLocal->committedGxids = lappend_int(MyTmGxactLocal->committedGxids, distribXid);
-		MemoryContextSwitchTo(oldContext);
+		if (distribXid != 0 && distribXid > MyTmGxact->gxid)
+		{
+			MemoryContext oldContext;
+			oldContext = MemoryContextSwitchTo(TopMemoryContext);
+			MyTmGxactLocal->committedGxids = lappend_int(MyTmGxactLocal->committedGxids, distribXid);
+			MemoryContextSwitchTo(oldContext);
+		}
 	}
 	return 	localCheckResult;
 }

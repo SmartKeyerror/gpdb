@@ -2053,7 +2053,7 @@ CreateDistributedSnapshot(DistributedSnapshot *ds)
 		* as we already have held ProcArrayLock and latestCompletedGxid
 		* can not be changed.
 		*/
-		if (gxid == InvalidDistributedTransactionId || gxid >= xmax)
+		if (gxid == InvalidDistributedTransactionId)
 			continue;
 
 		/*

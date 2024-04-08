@@ -59,30 +59,6 @@ DistributedSnapshotWithLocalMapping_CommittedTest(
 	 * through our cache in distributed snapshot looking for a possible
 	 * corresponding local xid only if it has value in checking.
 	 */
-	if (dslm->currentLocalXidsCount > 0)
-	{
-		Assert(TransactionIdIsNormal(dslm->minCachedLocalXid));
-		Assert(TransactionIdIsNormal(dslm->maxCachedLocalXid));
-
-		if (TransactionIdEquals(localXid, dslm->minCachedLocalXid) ||
-			TransactionIdEquals(localXid, dslm->maxCachedLocalXid))
-		{
-			return DISTRIBUTEDSNAPSHOT_COMMITTED_INPROGRESS;
-		}
-
-		if (TransactionIdFollows(localXid, dslm->minCachedLocalXid) &&
-			TransactionIdPrecedes(localXid, dslm->maxCachedLocalXid))
-		{
-			for (i = 0; i < dslm->currentLocalXidsCount; i++)
-			{
-				Assert(dslm->inProgressMappedLocalXids != NULL);
-				Assert(TransactionIdIsValid(dslm->inProgressMappedLocalXids[i]));
-
-				if (TransactionIdEquals(localXid, dslm->inProgressMappedLocalXids[i]))
-					return DISTRIBUTEDSNAPSHOT_COMMITTED_INPROGRESS;
-			}
-		}
-	}
 
 	/*
 	 * Is this local xid in a process-local cache we maintain?
@@ -150,14 +126,6 @@ DistributedSnapshotWithLocalMapping_CommittedTest(
 	 * Any xid >= xmax is in-progress, distributed xmax points to the
 	 * latestCompletedGxid + 1.
 	 */
-	if (distribXid >= ds->xmax)
-	{
-		elog((Debug_print_snapshot_dtm ? LOG : DEBUG5),
-			 "distributedsnapshot committed but invisible: distribXid "UINT64_FORMAT" dxmax "UINT64_FORMAT" dxmin "UINT64_FORMAT" distribSnapshotId %d",
-			 distribXid, ds->xmax, ds->xmin, ds->distribSnapshotId);
-
-		return DISTRIBUTEDSNAPSHOT_COMMITTED_INPROGRESS;
-	}
 
 	for (i = 0; i < ds->count; i++)
 	{
