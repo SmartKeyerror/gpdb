@@ -2448,6 +2448,7 @@ XidInMVCCSnapshot(TransactionId xid, Snapshot snapshot,
 				  bool distributedSnapshotIgnore, bool *setDistributedSnapshotIgnore)
 {
 	XidInMVCCSnapshotCheckResult localCheckResult;
+	XidInMVCCSnapshotCheckResult distCheckResult;
 
 	Assert (setDistributedSnapshotIgnore != NULL);
 	*setDistributedSnapshotIgnore = false;
@@ -2493,6 +2494,23 @@ XidInMVCCSnapshot(TransactionId xid, Snapshot snapshot,
 		switch (distributedSnapshotCommitted)
 		{
 			case DISTRIBUTEDSNAPSHOT_COMMITTED_INPROGRESS:
+				localCheckResult = XidInMVCCSnapshot_Local(xid, snapshot) ? XID_IN_SNAPSHOT : XID_NOT_IN_SNAPSHOT;
+
+				if (localCheckResult == XID_NOT_IN_SNAPSHOT && Gp_role == GP_ROLE_EXECUTE)
+				{
+					DistributedTransactionId distribXid = InvalidDistributedTransactionId;
+					if (!LocalDistribXactCache_CommittedFind(xid,
+															 &distribXid))
+						DistributedLog_CommittedCheck(xid, &distribXid);
+
+					if (distribXid != 0 && distribXid > MyTmGxact->gxid)
+					{
+						MemoryContext oldContext;
+						oldContext = MemoryContextSwitchTo(TopMemoryContext);
+						MyTmGxactLocal->committedGxids = lappend_int(MyTmGxactLocal->committedGxids, distribXid);
+						MemoryContextSwitchTo(oldContext);
+					}
+				}
 				return XID_IN_SNAPSHOT;
 
 			case DISTRIBUTEDSNAPSHOT_COMMITTED_VISIBLE:
