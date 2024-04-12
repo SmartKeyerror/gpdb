@@ -1616,6 +1616,9 @@ void mppExecutorFinishup(QueryDesc *queryDesc)
 				{
 					int gxid = result->localCommittedGxids[j];
 					markGxidIsPrepared(gxid);
+					if (InvalidDistributedTransactionId != gxid &&
+						ShmemVariableCache->latestCompletedGxid < gxid)
+						ShmemVariableCache->latestCompletedGxid = gxid;
 				}
 			}
 		}
