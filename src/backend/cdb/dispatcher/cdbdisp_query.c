@@ -48,6 +48,7 @@
 #include "cdb/cdbdispatchresult.h"
 #include "cdb/cdbcopy.h"
 #include "executor/execUtils.h"
+#include "storage/procarray.h"
 
 #define QUERY_STRING_TRUNCATE_SIZE (1024)
 
@@ -1252,6 +1253,30 @@ cdbdisp_dispatchX(QueryDesc* queryDesc,
 				break;
 		}
 	}
+
+	CdbDispatchResults *pr;
+	pr = cdbdisp_getDispatchResults(ds, &qeError);
+	int  resultCount = pr->resultCount;
+	CdbPgResults cdb_pgresults = {NULL, 0};
+	cdbdisp_returnResults(pr, &cdb_pgresults);
+	struct pg_result **results = cdb_pgresults.pg_results;
+
+	ListCell *l;
+	LWLockAcquire(ProcArrayLock, LW_EXCLUSIVE);
+	for (int i = 0; i < resultCount; i++)
+	{
+		struct pg_result *result = results[i];
+
+		if (result->nCommitted > 0)
+		{
+			for (int j = 0; j < result->nCommitted; j++)
+			{
+				int gxid = result->localCommittedGxids[j];
+				markGxidIsPrepared(gxid);
+			}
+		}
+	}
+	LWLockRelease(ProcArrayLock);
 
 	estate->dispatcherState = ds;
 }
