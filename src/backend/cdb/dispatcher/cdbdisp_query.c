@@ -1278,6 +1278,9 @@ cdbdisp_dispatchX(QueryDesc* queryDesc,
 	}
 	LWLockRelease(ProcArrayLock);
 
+	if (results)
+		pfree(results);
+
 	estate->dispatcherState = ds;
 }
 
