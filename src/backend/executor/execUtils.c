@@ -98,6 +98,7 @@
 
 #include "libpq-fe.h"
 #include "libpq-int.h"
+#include "storage/procarray.h"
 
 static bool tlist_matches_tupdesc(PlanState *ps, List *tlist, Index varno, TupleDesc tupdesc);
 static void ShutdownExprContext(ExprContext *econtext, bool isCommit);
@@ -1603,6 +1604,23 @@ void mppExecutorFinishup(QueryDesc *queryDesc)
 		int *waitGxids = NULL;
 
 		struct pg_result **results = cdb_pgresults.pg_results;
+
+		LWLockAcquire(ProcArrayLock, LW_EXCLUSIVE);
+		for (int i = 0; i < resultCount; i++)
+		{
+			struct pg_result *result = results[i];
+
+			if (result->nCommitted > 0)
+			{
+				for (int j = 0; j < result->nCommitted; j++)
+				{
+					int gxid = result->localCommittedGxids[j];
+					markGxidIsPrepared(gxid);
+				}
+			}
+		}
+		LWLockRelease(ProcArrayLock);
+
 		/* gather all the waited gxids from segments and remove the duplicates */
 		for (int i = 0; i < resultCount; i++)
 			totalWaits += results[i]->nWaits;
