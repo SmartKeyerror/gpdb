@@ -768,6 +768,10 @@ PQclear(PGresult *res)
 		free(res->waitGxids);
 	res->waitGxids = NULL;
 	res->nWaits = 0;
+	if (res->localCommittedGxids)
+		free(res->localCommittedGxids);
+	res->localCommittedGxids = NULL;
+	res->nCommitted = 0;
 
 	/* Free the PGresult structure itself */
 	free(res);
