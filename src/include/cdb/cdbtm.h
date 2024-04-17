@@ -19,6 +19,7 @@
 #include "nodes/plannodes.h"
 
 struct Gang;
+struct pg_result;
 
 /**
  * DTX states, used to track the state of the distributed transaction
@@ -298,6 +299,7 @@ extern bool getDistributedTransactionIdentifier(char *id);
 extern void setDistributedTransactionContext(DtxContext context);
 
 extern void resetTmGxact(void);
+extern void resetTmGxactWaitGxids(void);
 extern void	prepareDtxTransaction(void);
 extern bool isPreparedDtxTransaction(void);
 extern bool notifyCommittedDtxTransactionIsNeeded(void);
@@ -359,5 +361,8 @@ extern DtxRecoveryEvent GetDtxRecoveryEvent(void);
 extern void SetDtxRecoveryEvent(DtxRecoveryEvent event);
 extern void DtxRecoveryMain(Datum main_arg);
 extern bool DtxRecoveryStartRule(Datum main_arg);
+
+extern void sendWaitGxidsToQD(List *waitGxids);
+extern void processAndWaitGxids(struct pg_result **results, int resultCount);
 
 #endif   /* CDBTM_H */

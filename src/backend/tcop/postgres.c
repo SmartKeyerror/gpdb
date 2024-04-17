@@ -1451,6 +1451,14 @@ exec_mpp_query(const char *query_string,
 
 		(*receiver->rDestroy) (receiver);
 
+		/*
+		 * if there has any Locks which we have waited, send them to QD and let QD wait
+		 * these distributed transactions finish.
+		 * After that, reset waitGxids, prevent duplicated processing.
+		 */
+		sendWaitGxidsToQD(MyTmGxactLocal->waitGxids);
+		resetTmGxactWaitGxids();
+
 		PortalDrop(portal, false);
 
 		/*

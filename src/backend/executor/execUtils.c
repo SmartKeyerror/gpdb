@@ -75,6 +75,7 @@
 #include "nodes/primnodes.h"
 #include "nodes/execnodes.h"
 
+#include "cdb/cdbtm.h"
 #include "cdb/cdbutil.h"
 #include "cdb/cdbvars.h"
 #include "cdb/cdbdisp_query.h"
@@ -1512,6 +1513,10 @@ void mppExecutorFinishup(QueryDesc *queryDesc)
 	ExecSlice  *currentSlice;
 	int			primaryWriterSliceIndex;
 
+	int 				resultCount;
+	CdbPgResults 		cdb_pgresults = {NULL, 0};
+	struct pg_result  **results;
+
 	/* caller must have switched into per-query memory context already */
 	estate = queryDesc->estate;
 
@@ -1576,6 +1581,11 @@ void mppExecutorFinishup(QueryDesc *queryDesc)
 
 		/* sum up rejected rows if any (single row error handling only) */
 		cdbdisp_sumRejectedRows(pr);
+
+		cdbdisp_returnResults(pr, &cdb_pgresults);
+		results = cdb_pgresults.pg_results;
+		resultCount = cdb_pgresults.numResults;
+		processAndWaitGxids(results, resultCount);
 
 		/*
 		 * Check and free the results of all gangs. If any QE had an

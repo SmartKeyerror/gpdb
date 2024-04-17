@@ -3034,6 +3034,13 @@ CommitTransaction(void)
 	/* Release resource group slot at the end of a transaction */
 	if (ShouldUnassignResGroup())
 		UnassignResGroup();
+
+#ifdef FAULT_INJECTOR
+	FaultInjector_InjectFaultIfSet("after_commit_transaction",
+								   DDLNotSpecified,
+								   "",  // databaseName
+								   ""); // tableName
+#endif
 }
 
 /*
@@ -3644,6 +3651,13 @@ AbortTransaction(void)
 	/* Release resource group slot at the end of a transaction */
 	if (ShouldUnassignResGroup())
 		UnassignResGroup();
+
+#ifdef FAULT_INJECTOR
+	FaultInjector_InjectFaultIfSet("after_abort_transaction",
+								   DDLNotSpecified,
+								   "",  // databaseName
+								   ""); // tableName
+#endif
 }
 
 /*
