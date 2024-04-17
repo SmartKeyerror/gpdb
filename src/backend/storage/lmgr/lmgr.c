@@ -690,8 +690,9 @@ XactLockTableWait(TransactionId xid, Relation rel, ItemPointer ctid,
 	 */
 	if (Gp_role == GP_ROLE_EXECUTE)
 	{
-		MemoryContext oldContext;
-		DistributedTransactionId gxid = LocalXidGetDistributedXid(xid);
+		MemoryContext 			  oldContext;
+		DistributedTransactionId *waitGid;
+		DistributedTransactionId  gxid = LocalXidGetDistributedXid(xid);
 
 		if (gxid != InvalidDistributedTransactionId)
 		{
@@ -701,7 +702,9 @@ XactLockTableWait(TransactionId xid, Relation rel, ItemPointer ctid,
 			 * after 'prepare'
 			 */
 			oldContext = MemoryContextSwitchTo(TopMemoryContext);
-			MyTmGxactLocal->waitGxids = lappend_int(MyTmGxactLocal->waitGxids, gxid);
+			waitGid = palloc(sizeof(DistributedTransactionId));
+			*waitGid = gxid;
+			MyTmGxactLocal->waitGxids = lappend(MyTmGxactLocal->waitGxids, waitGid);
 			MemoryContextSwitchTo(oldContext);
 		}
 	}

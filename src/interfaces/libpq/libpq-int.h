@@ -252,8 +252,8 @@ struct pg_result
 	/* GPDB: number of rows completed when COPY FROM */
 	int64		numCompleted;
 	/* GPDB */
-	int		nWaits;
-	int		*waitGxids;
+	int			nWaits;
+	int64		*waitGxids;
 };
 
 /* PGAsyncStatusType defines the state of the query-execution state machine */
