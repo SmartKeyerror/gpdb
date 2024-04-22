@@ -225,14 +225,14 @@ UPDATE 1
 1: end;
 COMMIT
 2<:  <... completed>
-UPDATE 1
+ERROR:  EvalPlanQual can not handle subPlan with Motion node  (seg0 127.0.1.1:7002 pid=122850)
 2: end;
-COMMIT
+ROLLBACK
 
 0: select * from tab_update_epq1;
  c1 | c2 
 ----+----
- 3  | 1  
+ 2  | 1  
 (1 row)
 0: drop table tab_update_epq1;
 DROP TABLE
