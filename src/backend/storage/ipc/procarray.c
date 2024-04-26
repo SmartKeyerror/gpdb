@@ -1783,7 +1783,7 @@ readerFillLocalSnapshot(Snapshot snapshot, DtxContext distributedTransactionCont
 				elog(ERROR, "transaction ID doesn't match between the reader gang "
 							"and the writer gang, expect "UINT64_FORMAT" but having "UINT64_FORMAT,
 							QEDtxContextInfo.distributedXid, SharedLocalSnapshotSlot->distributedXid);
-			copyLocalSnapshot(snapshot);
+			//copyLocalSnapshot(snapshot);
 			SetSharedTransactionId_reader(SharedLocalSnapshotSlot->fullXid, snapshot->curcid, distributedTransactionContext);
 			LWLockRelease(SharedLocalSnapshotSlot->slotLock);
 			return;
