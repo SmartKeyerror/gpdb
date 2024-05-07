@@ -2259,7 +2259,7 @@ GetSnapshotData(Snapshot snapshot, DtxContext distributedTransactionContext)
 		 distributedTransactionContext == DTX_CONTEXT_QE_ENTRY_DB_SINGLETON))
 	{
 		readerFillLocalSnapshot(snapshot, distributedTransactionContext);
-		return snapshot;
+		//return snapshot;
 	}
 
 	/*
