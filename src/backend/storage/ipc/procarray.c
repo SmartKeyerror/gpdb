@@ -1784,7 +1784,7 @@ readerFillLocalSnapshot(Snapshot snapshot, DtxContext distributedTransactionCont
 							"and the writer gang, expect "UINT64_FORMAT" but having "UINT64_FORMAT,
 							QEDtxContextInfo.distributedXid, SharedLocalSnapshotSlot->distributedXid);
 			//copyLocalSnapshot(snapshot);
-			SetSharedTransactionId_reader(SharedLocalSnapshotSlot->fullXid, snapshot->curcid, distributedTransactionContext);
+			SetSharedTransactionId_reader(SharedLocalSnapshotSlot->fullXid, SharedLocalSnapshotSlot->snapshot.curcid, distributedTransactionContext);
 			LWLockRelease(SharedLocalSnapshotSlot->slotLock);
 			return;
 		}
